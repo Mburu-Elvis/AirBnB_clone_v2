@@ -2,6 +2,8 @@
 """ Console Module """
 import cmd
 import sys
+import uuid
+from datetime import datetime
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -74,7 +76,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] is '{' and pline[-1] is '}'\
+                    if pline[0] == '{' and pline[-1] == '}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -120,32 +122,40 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         my_args = cmd.Cmd.parseline(self, args)
-        if my_args[0] not in HBNBCommand.classes:
+        class_name = my_args[0]
+        if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
         params = my_args[1].split(' ')
         if len(params) == 0:
             print("** parameter missing **")
             return
+        kwargs = {}
         for param in params:
-            if "=" in param:
-                key, value = param.split("=")
-                if not re.search('^".*"$', value):
-                    print("** value syntax error **")
-                    return
-                value = value[1:-1].replace('_', ' ')
-                if '.' in value:
+           key_value = param.split('=')
+           if len(key_value) == 2:
+                key, value = key_value
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace('_', ' ')
+                else:
+                    continue
+                if re.match(r'^\d+\.\d+$', value):
                     value = float(value)
-                try:
+                elif value.isdigit():
                     value = int(value)
-                except ValueError:
-                    value = value
-            else:
-                pass
-        new_instance = HBNBCommand.classes[my_args[0]]()
-        storage.save()
-        print(new_instance.id)
-        storage.save()
+                kwargs[key] = value
+        if 'updated_at' not in kwargs:
+            fmt = '%Y-%m-%dT%H:%M:%S.%f'
+            kwargs['updated_at'] = datetime.strftime(datetime.now(), fmt)
+        if 'created_at' not in kwargs:
+            fmt = '%Y-%m-%dT%H:%M:%S.%f'
+            kwargs['created_at'] = datetime.strftime(datetime.now(), fmt)
+            
+        new_instance = HBNBCommand.classes[class_name](**kwargs)
+        print(kwargs)
+        print(type(new_instance))
+        new_instance.id = str(uuid.uuid4())
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -293,7 +303,7 @@ class HBNBCommand(cmd.Cmd):
                 args.append(v)
         else:  # isolate args
             args = args[2]
-            if args and args[0] is '\"':  # check for quoted arg
+            if args and args[0] == '\"':  # check for quoted arg
                 second_quote = args.find('\"', 1)
                 att_name = args[1:second_quote]
                 args = args[second_quote + 1:]
@@ -301,10 +311,10 @@ class HBNBCommand(cmd.Cmd):
             args = args.partition(' ')
 
             # if att_name was not quoted arg
-            if not att_name and args[0] is not ' ':
+            if not att_name and args[0] != ' ':
                 att_name = args[0]
             # check for quoted val arg
-            if args[2] and args[2][0] is '\"':
+            if args[2] and args[2][0] == '\"':
                 att_val = args[2][1:args[2].find('\"', 1)]
 
             # if att_val was not quoted arg
