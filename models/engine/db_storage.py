@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from models.base_model import Base
 from sqlalchemy.orm import sessionmaker, scoped_session
 import os
 """Module defining the DBStorage engine"""
@@ -30,25 +31,25 @@ class DBStorage:
         else:
             objects = []
             for table in Base.metadata.table.keys():
-                objobjects.extend(session.query(Base.metadata.tables[table]).all())
+                objects.extend(session.query(Base.metadata.tables[table]).all())
         return {"{}.{}".format(type(obj).__name__, obj.id): obj for obj in objects}
 
-   def new(self, obj):
-       """adds the object to the current database session."""
-       if obj:
-           self.__session.add(obj)
+    def new(self, obj):
+        """adds the object to the current database session."""
+        if obj:
+            self.__session.add(obj)
 
-   def save(self):
-       """commits all changes of the current db session."""
-       self.__session.commit()
+    def save(self):
+        """commits all changes of the current db session."""
+        self.__session.commit()
 
-   def delete(self, ob=None):
-       """deletes object from the current database session."""
-       if obj:
-           self.__session.delete(obj)
+    def delete(self, ob=None):
+        """deletes object from the current database session."""
+        if obj:
+            self.__session.delete(obj)
 
-   def reload(self):
-       """creates all tables in the database."""
-       Base.metadata.create_all(engine)
-       session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
-       self.__session = scoped_session(session_factory)
+    def reload(self):
+        """creates all tables in the database."""
+        Base.metadata.create_all(self.__engine)
+        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        self.__session = scoped_session(session_factory)

@@ -122,40 +122,26 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         my_args = cmd.Cmd.parseline(self, args)
-        class_name = my_args[0]
-        if class_name not in HBNBCommand.classes:
+        args = my_args[2].split(' ')
+        classname = args[0]
+        if classname not in self.classes:
             print("** class doesn't exist **")
             return
-        params = my_args[1].split(' ')
-        if len(params) == 0:
-            print("** parameter missing **")
+        if len(args) == 1:
             return
         kwargs = {}
-        for param in params:
-           key_value = param.split('=')
-           if len(key_value) == 2:
-                key, value = key_value
-                if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1].replace('_', ' ')
-                else:
-                    continue
-                if re.match(r'^\d+\.\d+$', value):
-                    value = float(value)
-                elif value.isdigit():
-                    value = int(value)
-                kwargs[key] = value
-        if 'updated_at' not in kwargs:
-            fmt = '%Y-%m-%dT%H:%M:%S.%f'
-            kwargs['updated_at'] = datetime.strftime(datetime.now(), fmt)
-        if 'created_at' not in kwargs:
-            fmt = '%Y-%m-%dT%H:%M:%S.%f'
-            kwargs['created_at'] = datetime.strftime(datetime.now(), fmt)
-            
-        new_instance = HBNBCommand.classes[class_name](**kwargs)
+        for param in args:
+            if param == args[0]:
+                continue
+            key, value = param.split("=")
+            if not value.startswith('"') and value.endswith('"'):
+                continue
+            kwargs[key] = value
         print(kwargs)
-        print(type(new_instance))
-        new_instance.id = str(uuid.uuid4())
+        new_instance = HBNBCommand.classes[classname](**kwargs)
         new_instance.save()
+        print(new_instance.id)
+
 
     def help_create(self):
         """ Help information for the create method """
