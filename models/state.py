@@ -17,3 +17,6 @@ class State(BaseModel, Base):
         @property
         def cities(self):
             return [city for city in storage.all(City) if city.state_id == self.id]
+    def __init__(self, *args, **kwargs):
+        """Class for states."""
+        super().__init__(*args, **kwargs)

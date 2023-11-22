@@ -21,8 +21,9 @@ class BaseModel:
                                                      '%Y-%m-%dT%H:%M:%S.%f')
             kwargs['created_at'] = datetime.strptime(kwargs['created_at'],
                                                      '%Y-%m-%dT%H:%M:%S.%f')
-            del kwargs['__class__']
             for key, value in kwargs.items():
+                if key == '__class__':
+                    del kwargs['__class__']
                 setattr(self, key, value)
 
     def __str__(self):

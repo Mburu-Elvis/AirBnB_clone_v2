@@ -137,6 +137,9 @@ class HBNBCommand(cmd.Cmd):
             if not value.startswith('"') and value.endswith('"'):
                 continue
             kwargs[key] = value
+        current_time = datetime.now()
+        kwargs['created_at'] = current_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
+        kwargs['updated_at'] = current_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
         print(kwargs)
         new_instance = HBNBCommand.classes[classname](**kwargs)
         new_instance.save()
