@@ -58,6 +58,6 @@ class FileStorage:
         """deletes obj from __objects."""
         if obj:
             obj_key = f'{obj.__class__.__name__}.{obj.id}'
-            if obj_key in FileStorage.__objects:
+            if obj_key in FileStorage.__objects.keys():
                 del FileStorage.__objects[obj_key]
                 self.save()
