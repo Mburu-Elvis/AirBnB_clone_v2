@@ -2,8 +2,6 @@
 """ Console Module """
 import cmd
 import sys
-import uuid
-from datetime import datetime
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -12,6 +10,7 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
+from datetime import datetime
 import re
 
 
@@ -121,30 +120,36 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
-        my_args = cmd.Cmd.parseline(self, args)
-        args = my_args[2].split(' ')
-        classname = args[0]
-        if classname not in self.classes:
+        args = args.partition(' ')
+        cls_name = args[0]
+        if cls_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        if len(args) == 1:
-            return
+        args = args[2].split(' ')
         kwargs = {}
         for param in args:
-            if param == args[0]:
-                continue
-            key, value = param.split("=")
-            if not value.startswith('"') and value.endswith('"'):
-                continue
-            kwargs[key] = value
-        current_time = datetime.now()
-        kwargs['created_at'] = current_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        kwargs['updated_at'] = current_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        print(kwargs)
-        new_instance = HBNBCommand.classes[classname](**kwargs)
-        new_instance.save()
+            key_value = param.split("=")
+            if len(key_value) == 2:
+                key = key_value[0]
+                value = key_value[1]
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                    value = value.replace("_", " ")
+                else:
+                    continue
+                if re.match(r'^\d+\.\d+$', value):
+                    value = float(value)
+                elif value.isdigit():
+                    value = int(value)
+                kwargs[key] = value
+            
+        new_instance = HBNBCommand.classes[cls_name]()
+        for key, value in kwargs.items():
+            if key not in new_instance.__dict__.keys():
+                new_instance.__dict__[key] = value
+        storage.save()
         print(new_instance.id)
-
+        storage.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -207,7 +212,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del (storage.all()[key])
+            del(storage.all()[key])
             storage.save()
         except KeyError:
             print("** no instance found **")
@@ -258,6 +263,7 @@ class HBNBCommand(cmd.Cmd):
 
         # isolate cls from id/args, ex: (<cls>, delim, <id/args>)
         args = args.partition(" ")
+        print(args)
         if args[0]:
             c_name = args[0]
         else:  # class name not present
@@ -269,6 +275,7 @@ class HBNBCommand(cmd.Cmd):
 
         # isolate id from args
         args = args[2].partition(" ")
+        print(args)
         if args[0]:
             c_id = args[0]
         else:  # id not present
@@ -339,7 +346,6 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
-
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
