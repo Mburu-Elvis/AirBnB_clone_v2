@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-"""script that sets up my web servers for the deployment of web_static."""
+# script that sets up my web servers for the deployment of web_static.
 package_name="nginx"
 if command -v $package_name &> /dev/null
 then
